@@ -1,0 +1,25 @@
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    },
+    {
+      "product": 2,
+      "quantity": 1
+    },
+    {
+      "product": 3,
+      "quantity": 1
+    }
+  ],
+  "firstname": "firstname",
+  "lastname": "lastname",
+  "phonenumber": "+79998887766",
+  "address": "SPb"
+}
+
+###

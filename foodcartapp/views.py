@@ -1,8 +1,8 @@
-import json
-
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse
 from django.templatetags.static import static
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Product, Order
 
@@ -59,15 +59,10 @@ def product_list_api(request):
     })
 
 
+@api_view(['POST'])
 def register_order(request):
-    if not request.method == 'POST':
-        return HttpResponseBadRequest()
-
-    order_body = json.loads(request.body)
-
-    order = save_user_order(order_body)
-
-    return JsonResponse({'order_num': order.pk}, json_dumps_params={'ensure_ascii': False})
+    order = save_user_order(request.data)
+    return Response({'order_num': order.pk})
 
 
 @transaction.atomic
