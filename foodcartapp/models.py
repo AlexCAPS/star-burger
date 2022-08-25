@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.db.models import UniqueConstraint
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 class Restaurant(models.Model):
@@ -121,3 +123,73 @@ class RestaurantMenuItem(models.Model):
 
     def __str__(self):
         return f"{self.restaurant.name} - {self.product.name}"
+
+
+class Order(models.Model):
+    first_name = models.CharField(
+        max_length=128,
+        verbose_name='Имя',
+        db_index=True,
+    )
+
+    last_name = models.CharField(
+        max_length=128,
+        verbose_name='Фамилия',
+        db_index=True,
+    )
+
+    phone_number = PhoneNumberField(
+        verbose_name='Телефон',
+        db_index=True,
+    )
+
+    address = models.TextField(
+        verbose_name='Адрес',
+        blank=False,
+    )
+
+    created_at = models.DateTimeField(
+        verbose_name='Время заказа',
+        auto_now_add=True,
+        db_index=True,
+    )
+
+    class Meta:
+        verbose_name = 'Заказ'
+        verbose_name_plural = 'Заказы'
+
+    def __str__(self):
+        return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at})'
+
+
+class ProductOrderQuantity(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        verbose_name='продукт',
+    )
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='products',
+        verbose_name='заказ',
+    )
+
+    quantity = models.PositiveSmallIntegerField(
+        verbose_name='количество',
+    )
+
+    class Meta:
+        verbose_name = 'продукты в заказе'
+        verbose_name_plural = 'продукты в заказах'
+
+        constraints = [
+            UniqueConstraint(
+                name='UniqueProductInOrder',
+                fields=('product', 'order'),
+            )
+        ]
+
+    def __str__(self):
+        return f'{self.product} {self.quantity} шт. (Заказ № {self.order.pk})'

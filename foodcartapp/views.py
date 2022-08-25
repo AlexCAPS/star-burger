@@ -1,8 +1,10 @@
-from django.http import JsonResponse
+import json
+
+from django.db import transaction
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.templatetags.static import static
 
-
-from .models import Product
+from .models import Product, Order
 
 
 def banners_list_api(request):
@@ -58,5 +60,26 @@ def product_list_api(request):
 
 
 def register_order(request):
-    # TODO это лишь заглушка
-    return JsonResponse({})
+    if not request.method == 'POST':
+        return HttpResponseBadRequest()
+
+    order_body = json.loads(request.body)
+
+    order = save_user_order(order_body)
+
+    return JsonResponse({'order_num': order.pk}, json_dumps_params={'ensure_ascii': False})
+
+
+@transaction.atomic
+def save_user_order(order_body):
+    order = Order.objects.create(
+        first_name=order_body['firstname'],
+        last_name=order_body['lastname'],
+        phone_number=order_body['phonenumber'],
+        address=order_body['address'],
+    )
+
+    for product in order_body.get('products'):
+        order.products.create(product_id=product['product'], quantity=product['quantity'])
+
+    return order
