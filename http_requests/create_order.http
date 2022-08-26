@@ -23,3 +23,56 @@ Content-Type: application/json
 }
 
 ###
+// Продукты — это не список, а строка.
+// products: Ожидался list со значениями, но был получен "str".
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": "HelloWorld",
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+// Продукты — это null.
+// products: Это поле не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": null,
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+// Продукты — пустой список.
+// products: Этот список не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [],
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+// Продуктов нет.
+// products: Обязательное поле.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
