@@ -23,6 +23,32 @@ Content-Type: application/json
 }
 
 ###
+
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": -1
+    },
+    {
+      "product": 2,
+      "quantity": 1.2
+    },
+    {
+      "product": 3
+    }
+  ],
+  "firstname": "firstname",
+  "lastname": "lastname",
+  "phonenumber": "+79998887766",
+  "address": "SPb"
+}
+
+###
+
 // Продукты — это не список, а строка.
 // products: Ожидался list со значениями, но был получен "str".
 POST http://localhost:8000/api/order/
@@ -76,3 +102,156 @@ Content-Type: application/json
   "phonenumber": "+79291000000",
   "address": "Москва"
 }
+
+
+###
+
+// firstname: Это поле не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ],
+  "firstname": null,
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+
+// Ключей заказа вообще нет.
+// firstname, lastname, phonenumber, address: Обязательное поле.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+// В заказе нет товаров.
+// products: Этот список не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [],
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+
+// Ключи есть, но все со значением null.
+// firstname, lastname, phonenumber, address: Это поле не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ],
+  "firstname": null,
+  "lastname": null,
+  "phonenumber": null,
+  "address": null
+}
+
+###
+
+// Не указан номер телефона.
+// phonenumber: Это поле не может быть пустым.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ],
+  "firstname": "Тимур",
+  "lastname": "Иванов",
+  "phonenumber": "",
+  "address": "Москва, Новый Арбат 10"
+}
+
+###
+
+// Несуществующий номер телефона.
+// phonenumber': Введен некорректный номер телефона.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ],
+  "firstname": "Тимур",
+  "lastname": "Иванов",
+  "phonenumber": "+70000000000",
+  "address": "Москва, Новый Арбат 10"
+}
+
+###
+
+// Заказ с неуществующим id продукта.
+// products: Недопустимый первичный ключ "9999"
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 9999,
+      "quantity": 1
+    }
+  ],
+  "firstname": "Иван",
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###
+
+// В поле firstname положили список.
+// firstname: Not a valid string.
+POST http://localhost:8000/api/order/
+Content-Type: application/json
+
+{
+  "products": [
+    {
+      "product": 1,
+      "quantity": 1
+    }
+  ],
+  "firstname": [],
+  "lastname": "Петров",
+  "phonenumber": "+79291000000",
+  "address": "Москва"
+}
+
+###

@@ -1,8 +1,10 @@
 from collections import defaultdict
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
+from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -91,21 +93,43 @@ def save_user_order(order_body):
 def validate_order_body(order_body: dict):
     errors = defaultdict(list)
 
+    # check required nonempty string
     required_str_keys = ['firstname', 'lastname', 'phonenumber', 'address']
     for str_key in required_str_keys:
         try:
             if not isinstance(order_body[str_key], str):
                 errors[str_key].append(f'{str_key} must be a string')
+            elif not len(order_body[str_key]):
+                errors[str_key].append(f'{str_key} must be a nonempty string')
         except KeyError as missing_key:
             errors[str_key].append(f'{missing_key} not found')
+
+    # validate phone number
+    if 'phonenumber' not in errors:
+        try:
+            validate_international_phonenumber(order_body['phonenumber'])
+        except ValidationError as e:
+            errors['phonenumber'].append(e)
 
     if 'products' not in order_body.keys():
         errors['products'].append('products not found')
 
+    # validate products content
     if not isinstance(order_body.get('products'), list):
-        errors['products'].append('products must be list')
+        errors['products'].append('products must be a list')
+    elif not len(order_body['products']):
+        errors['products'].append('products cannot be empty')
     else:
-        if not len(order_body['products']):
-            errors['products'] = ['products cannot be empty']
+        if any(key not in product for key in ['product', 'quantity'] for product in order_body['products']):
+            errors['products'].append(f'Incorrect product was found in cart')
+
+        product_ids = {product.get('product') for product in order_body['products']}
+        not_founded = product_ids - set(Product.objects.filter(pk__in=product_ids).values_list('pk', flat=True))
+        if not_founded:
+            errors['products'].append(f'This is incorrect products: {not_founded}')
+
+        quantities = [product.get('quantity') for product in order_body['products']]
+        if any(not isinstance(quantity, int) or quantity <= 0 for quantity in quantities):
+            errors['products'].append(f'Incorrect quantity was found')
 
     return errors
