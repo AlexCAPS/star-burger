@@ -1,9 +1,7 @@
-from django.db import transaction
 from django.http import JsonResponse
 from django.templatetags.static import static
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework.generics import CreateAPIView
 
 from .models import Product, Order
 from .serializers import OrderSerializer
@@ -61,25 +59,6 @@ def product_list_api(request):
     })
 
 
-@api_view(['POST'])
-def register_order(request):
-    serializer = OrderSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    order = save_user_order(request.data)
-    return Response({'order_num': order.pk})
-
-
-@transaction.atomic
-def save_user_order(order_body):
-    order = Order.objects.create(
-        first_name=order_body['firstname'],
-        last_name=order_body['lastname'],
-        phone_number=order_body['phonenumber'],
-        address=order_body['address'],
-    )
-
-    for product in order_body.get('products'):
-        order.products.create(product_id=product['product'], quantity=product['quantity'])
-
-    return order
+class OrderView(CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
