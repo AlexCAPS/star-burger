@@ -17,6 +17,7 @@
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
+      <th>Стоимость заказа</th>
     </tr>
 
     {% for item in order_items %}
@@ -25,6 +26,7 @@
         <td>{{ item.first_name }} {{ item.last_name }}</td>
         <td>{{ item.phone_number }}</td>
         <td>{{ item.address }}</td>
+        <td>{{ item.cost }} ₽</td>
       </tr>
     {% endfor %}
    </table>

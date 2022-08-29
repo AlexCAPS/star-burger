@@ -3,6 +3,8 @@ from django.core.validators import MinValueValidator
 from django.db.models import UniqueConstraint
 from phonenumber_field.modelfields import PhoneNumberField
 
+from foodcartapp.model_managers import OrderCostManager
+
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -153,6 +155,8 @@ class Order(models.Model):
         auto_now_add=True,
         db_index=True,
     )
+
+    objects = OrderCostManager()
 
     class Meta:
         verbose_name = 'Заказ'
