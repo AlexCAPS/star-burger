@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, IntegerField, ListField
 from rest_framework.serializers import Serializer
 
-from foodcartapp.models import Product, Order
+from foodcartapp.models import Product, Order, ProductOrderQuantity
 
 
 class ProductSerializer(Serializer):
@@ -46,13 +46,17 @@ class OrderSerializer(Serializer):
         used_products = Product.objects.filter(pk__in=product_ids).values('pk', 'price')
         product_price_map = {obj['pk']: obj['price'] for obj in used_products}
 
-        for product in incoming_products:
-            product_id = product['product']
-            order.products.create(
-                product_id=product_id,
+        products_bulk = [
+            ProductOrderQuantity(
+                order_id=order.pk,
+                product_id=product['product'],
                 quantity=product['quantity'],
-                frozen_price=product_price_map[product_id],
+                frozen_price=product_price_map[product['product']]
             )
+            for product in incoming_products
+        ]
+
+        ProductOrderQuantity.objects.bulk_create(products_bulk)
 
         return order
 
