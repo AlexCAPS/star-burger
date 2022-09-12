@@ -180,6 +180,13 @@ class ProductOrderQuantity(models.Model):
         verbose_name='заказ',
     )
 
+    frozen_price = models.DecimalField(
+        verbose_name='цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+
     quantity = models.PositiveSmallIntegerField(
         verbose_name='количество',
     )

@@ -1,5 +1,6 @@
 from copy import deepcopy
 
+from django.db import transaction
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, IntegerField, ListField
@@ -33,15 +34,25 @@ class OrderSerializer(Serializer):
     def update(self, instance, validated_data):
         raise NotImplementedError('`update()` must be implemented.')
 
+    @transaction.atomic
     def create(self, validated_order_data):
         validated_order_data = deepcopy(validated_order_data)
 
-        products = validated_order_data.pop('products')
+        incoming_products = validated_order_data.pop('products')
 
         order = Order.objects.create(**validated_order_data)
 
-        for product in products:
-            order.products.create(product_id=product['product'], quantity=product['quantity'])
+        product_ids = {product['product'] for product in incoming_products}
+        used_products = Product.objects.filter(pk__in=product_ids).values('pk', 'price')
+        product_price_map = {obj['pk']: obj['price'] for obj in used_products}
+
+        for product in incoming_products:
+            product_id = product['product']
+            order.products.create(
+                product_id=product_id,
+                quantity=product['quantity'],
+                frozen_price=product_price_map[product_id],
+            )
 
         return order
 

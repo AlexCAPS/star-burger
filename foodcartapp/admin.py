@@ -118,13 +118,42 @@ class ProductOrderQuantityAdmin(admin.ModelAdmin):
 class ProductOrderQuantityInline(admin.TabularInline):
     model = ProductOrderQuantity
     extra = 0
+    readonly_fields = ['frozen_price']
+
+    def get_fields(self, request, obj=None):
+        fields_for_create = ['product', 'order', 'quantity']
+        fields_for_update = fields_for_create + self.readonly_fields
+        return fields_for_update if obj else fields_for_create
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'first_name', 'last_name', 'phone_number', 'created_at', ]
+    list_display = ['pk', 'first_name', 'last_name', 'phone_number', 'created_at', 'view_cost']
     search_fields = list_display
     list_filter = ['created_at', ]
     inlines = [
         ProductOrderQuantityInline,
     ]
+
+    readonly_fields = ['view_cost']
+
+    def get_queryset(self, request):
+        return Order.objects.with_cost()
+
+    @admin.display(description='цена', ordering='cost')
+    def view_cost(self, order):
+        return order.cost
+
+    def save_formset(self, request, form, formset, change):
+        """
+        Update frozen_price in form like actual product price
+        :param request:
+        :param form:
+        :param formset:
+        :param change:
+        :return:
+        """
+        product_order_quantities: list = formset.save(commit=False)
+        for product_order_quantity in product_order_quantities:
+            product_order_quantity.frozen_price = product_order_quantity.product.price
+        formset.save()
