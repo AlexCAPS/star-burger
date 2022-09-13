@@ -1,7 +1,7 @@
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth import authenticate, login
@@ -93,4 +93,10 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.with_cost().order_by('-created_at')
-    return render(request, template_name='order_items.html', context={'order_items': orders})
+
+    context = {
+        'order_items': orders,
+        'next': reverse('restaurateur:view_orders'),
+    }
+
+    return render(request, template_name='order_items.html', context=context)

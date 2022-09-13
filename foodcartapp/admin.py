@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
@@ -157,3 +158,11 @@ class OrderAdmin(admin.ModelAdmin):
         for product_order_quantity in product_order_quantities:
             product_order_quantity.frozen_price = product_order_quantity.product.price
         formset.save()
+
+    def response_post_save_change(self, request, obj):
+        if "next" in request.GET:
+            # add redirect to url from "next" param if it will be required
+            return HttpResponseRedirect(reverse('restaurateur:view_orders'))
+
+        response = super(OrderAdmin, self).response_post_save_change(request, obj)
+        return response
