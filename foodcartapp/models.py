@@ -128,15 +128,22 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    class Status(models.TextChoices):
+        NEW = 'N', 'Новый'
+        ASSEMBLY = 'A', 'Передан ресторану'
+        IN_DELIVERY = 'D', 'Передан курьеру'
+        FINISHED = 'F', 'Завершён'
+        CANCELED = 'C', 'Отменён'
+
     first_name = models.CharField(
-        max_length=128,
         verbose_name='Имя',
+        max_length=128,
         db_index=True,
     )
 
     last_name = models.CharField(
-        max_length=128,
         verbose_name='Фамилия',
+        max_length=128,
         db_index=True,
     )
 
@@ -156,6 +163,14 @@ class Order(models.Model):
         db_index=True,
     )
 
+    status = models.CharField(
+        verbose_name='Статус',
+        max_length=1,
+        choices=Status.choices,
+        default=Status.NEW,
+        db_index=True
+    )
+
     objects = OrderCostManager()
 
     class Meta:
@@ -163,7 +178,7 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at})'
+        return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at} {self.status})'
 
 
 class ProductOrderQuantity(models.Model):

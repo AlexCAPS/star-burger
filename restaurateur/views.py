@@ -92,7 +92,9 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.with_cost().order_by('-created_at')
+    orders = Order.objects.with_cost().exclude(
+        status__in=[Order.Status.FINISHED, Order.Status.CANCELED]
+    ).order_by('-created_at')
 
     context = {
         'order_items': orders,

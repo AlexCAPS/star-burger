@@ -129,9 +129,9 @@ class ProductOrderQuantityInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['pk', 'first_name', 'last_name', 'phone_number', 'created_at', 'view_cost']
+    list_display = ['pk', 'status', 'first_name', 'last_name', 'phone_number', 'created_at', 'view_cost']
     search_fields = list_display
-    list_filter = ['created_at', ]
+    list_filter = ['created_at', 'status']
     inlines = [
         ProductOrderQuantityInline,
     ]
