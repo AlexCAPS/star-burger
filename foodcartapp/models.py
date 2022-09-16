@@ -171,6 +171,11 @@ class Order(models.Model):
         db_index=True
     )
 
+    comment = models.TextField(
+        verbose_name='Комментарий',
+        blank=True,
+    )
+
     objects = OrderCostManager()
 
     class Meta:
