@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import UniqueConstraint
+from django.db.models import UniqueConstraint, Q, F, CheckConstraint
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.model_managers import OrderCostManager
@@ -163,6 +163,18 @@ class Order(models.Model):
         db_index=True,
     )
 
+    called_at = models.DateTimeField(
+        verbose_name='Время звонка',
+        null=True, blank=True,
+        db_index=True,
+    )
+
+    delivered_at = models.DateTimeField(
+        verbose_name='Время доставки',
+        null=True, blank=True,
+        db_index=True,
+    )
+
     status = models.CharField(
         verbose_name='Статус',
         max_length=1,
@@ -181,6 +193,17 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
+
+        constraints = [
+            CheckConstraint(
+                check=Q(called_at__gte=F('created_at')) | Q(called_at__isnull=True),
+                name='call_after_create',
+            ),
+            CheckConstraint(
+                check=Q(delivered_at__gte=F('called_at')) | Q(called_at__isnull=True) | Q(delivered_at__isnull=True),
+                name='delivered_after_call',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at} {self.status})'

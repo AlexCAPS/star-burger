@@ -4,6 +4,7 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 
+from .forms import OrderAdminForm
 from .models import Product, Order, ProductOrderQuantity
 from .models import ProductCategory
 from .models import Restaurant
@@ -129,6 +130,7 @@ class ProductOrderQuantityInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    form = OrderAdminForm
     list_display = ['pk', 'status', 'first_name', 'last_name', 'phone_number', 'created_at', 'view_cost']
     search_fields = list_display
     list_filter = ['created_at', 'status']
@@ -136,7 +138,7 @@ class OrderAdmin(admin.ModelAdmin):
         ProductOrderQuantityInline,
     ]
 
-    readonly_fields = ['view_cost']
+    readonly_fields = ['view_cost', 'created_at']
 
     def get_queryset(self, request):
         return Order.objects.with_cost()
