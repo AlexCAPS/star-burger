@@ -135,6 +135,12 @@ class Order(models.Model):
         FINISHED = 'F', 'Завершён'
         CANCELED = 'C', 'Отменён'
 
+    class PaymentMethod(models.TextChoices):
+        EMPTY = '', 'Не выбран'
+        CASH = 'CASH', 'Наличный расчёт'
+        CARD_ON_SITE = 'SITE', 'Картой на сайте'
+        CARD_TO_COURIER = 'CARD', 'Картой курьеру'
+
     first_name = models.CharField(
         verbose_name='Имя',
         max_length=128,
@@ -186,6 +192,15 @@ class Order(models.Model):
     comment = models.TextField(
         verbose_name='Комментарий',
         blank=True,
+    )
+
+    payment_method = models.CharField(
+        verbose_name='Способ оплаты',
+        max_length=4,
+        choices=PaymentMethod.choices,
+        blank=False,
+        default=PaymentMethod.EMPTY,
+        db_index=True,
     )
 
     objects = OrderCostManager()
