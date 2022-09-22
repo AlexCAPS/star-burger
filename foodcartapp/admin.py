@@ -179,3 +179,10 @@ class OrderAdmin(admin.ModelAdmin):
 
         response = super(OrderAdmin, self).response_post_save_change(request, obj)
         return response
+
+    def get_form(self, request, order=None, change=False, **kwargs):
+        form = super(OrderAdmin, self).get_form(request, order, **kwargs)
+
+        # update qs for select only available restaurant
+        form.base_fields['selected_restaurant'].queryset = order.get_appropriate_restaurants()
+        return form

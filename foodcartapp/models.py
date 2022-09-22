@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import UniqueConstraint, Q, F, CheckConstraint
+from django.db.models import UniqueConstraint, Q, F, CheckConstraint, Count
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.model_managers import OrderCostManager
@@ -198,9 +198,18 @@ class Order(models.Model):
         verbose_name='Способ оплаты',
         max_length=4,
         choices=PaymentMethod.choices,
-        blank=False,
+        blank=True,
         default=PaymentMethod.EMPTY,
         db_index=True,
+    )
+
+    selected_restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='Выбранный ресторан',
+        related_name='orders',
+        null=True, blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
     )
 
     objects = OrderCostManager()
@@ -219,6 +228,26 @@ class Order(models.Model):
                 name='delivered_after_call',
             ),
         ]
+
+    def get_appropriate_restaurants(self):
+        """
+
+        :return: Return queryset of restaurants which can create full order
+        """
+        products = self.products.all().values_list('product', flat=True)
+
+        appropriate_restaurants = (
+            Restaurant.objects.filter(
+                menu_items__product__in=products,
+                menu_items__availability=True,
+            )
+            .annotate(
+                req_prod_count=Count('pk')
+            ).filter(
+                req_prod_count=len(products)
+            )
+        )
+        return appropriate_restaurants
 
     def __str__(self):
         return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at} {self.status})'
