@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django import forms
 from django.shortcuts import redirect, render
 from django.views import View
@@ -7,7 +9,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-
+from foodcartapp.geo_tools import get_distances
 from foodcartapp.models import Product, Restaurant, Order
 
 
@@ -96,9 +98,27 @@ def view_orders(request):
         status__in=[Order.Status.FINISHED, Order.Status.CANCELED]
     ).order_by('-created_at')
 
+    appropriated_restaurants = Order.get_many_orders_appropriate_restaurants(orders)
+
+    mapped_restaurants = defaultdict(list)
+
+    for restaurant in appropriated_restaurants:
+        mapped_restaurants[restaurant.order_pk].append(restaurant)
+
+    order_items = []
+
+    for order in orders:
+        order_items.append(
+            {
+                'order': order,
+                'restaurants': get_distances(order, mapped_restaurants.get(order.pk, []), sort=True)
+            }
+        )
+
     context = {
-        'order_items': orders,
+        'order_items': order_items,
         'next': reverse('restaurateur:view_orders'),
+        'restaurants': Order.get_many_orders_appropriate_restaurants(orders)
     }
 
     return render(request, template_name='order_items.html', context=context)

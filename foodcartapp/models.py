@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import UniqueConstraint, Q, F, CheckConstraint, Count
+from django.db.models import UniqueConstraint, Q, F, CheckConstraint, Count, Value
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.model_managers import OrderCostManager
@@ -240,14 +240,44 @@ class Order(models.Model):
             Restaurant.objects.filter(
                 menu_items__product__in=products,
                 menu_items__availability=True,
-            )
-            .annotate(
-                req_prod_count=Count('pk')
+            ).annotate(
+                req_prod_count=Count('pk'),
             ).filter(
                 req_prod_count=len(products)
             )
         )
         return appropriate_restaurants
+
+    @staticmethod
+    def get_many_orders_appropriate_restaurants(orders):
+        """
+        Selects for the list of orders restaurants that can prepare the order.
+
+        :param orders: QuerySet of orders for which will found appropriated restaurants
+        :return: QuerySet of appropriated restaurants with annotated order_pk - primary key of associated order
+        """
+        # products_count need for grouped and select appropriated restaurants
+        orders = orders.select_related().annotate(products_count=Count('products'))
+
+        restaurants_queries = [
+            (
+                Restaurant.objects.filter(
+                    menu_items__product__in=order.products.values_list('product', flat=True),
+                    menu_items__availability=True,
+                ).annotate(
+                    order_pk=Value(order.pk),
+                    req_prod_count=Count('pk'),
+                ).filter(
+                    order_pk=Value(order.pk),
+                    req_prod_count=order.products_count
+                )
+            )
+            for order in orders
+        ]
+
+        appropriate_restaurants_qs = Restaurant.objects.none()
+        appropriate_restaurants_qs = appropriate_restaurants_qs.union(*restaurants_queries, all=True)
+        return appropriate_restaurants_qs
 
     def __str__(self):
         return f'{self.first_name} {self.phone_number} (Заказ № {self.pk} от {self.created_at} {self.status})'
