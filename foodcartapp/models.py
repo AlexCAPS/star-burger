@@ -243,7 +243,7 @@ class Order(models.Model):
             ).annotate(
                 req_prod_count=Count('pk'),
             ).filter(
-                req_prod_count=len(products)
+                req_prod_count=products.count()
             )
         )
         return appropriate_restaurants

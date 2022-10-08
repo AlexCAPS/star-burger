@@ -23,13 +23,22 @@ def fetch_coordinates(apikey, address):
     return lon, lat
 
 
-def evaluate_distance(source_address: str, destination_address: str):
+def evaluate_distance(source_address: str, destination_address: str) -> float | None:
+    """
+    Evaluate distance between two addresses. Return distance in kilometers or None, when one of address not be found.
+    :param source_address: Address of source place
+    :param destination_address: Address of destination place
+    :return: distance in kilometers or None, when one of address not be found
+    """
     api_key = settings.YANDEX_GEOCODER_API_KEY
 
     source_coordinate = fetch_coordinates(api_key, source_address)
     destination_coordinate = fetch_coordinates(api_key, destination_address)
 
-    distance_between = distance.distance(source_coordinate, destination_coordinate).km
+    if all((source_coordinate, destination_coordinate)):
+        distance_between = distance.distance(source_coordinate, destination_coordinate).km
+    else:
+        distance_between = None
 
     return distance_between
 
@@ -41,6 +50,7 @@ def get_distances(order: Order, restaurants, sort=False):
     ]
 
     if sort:
-        restaurants_with_distance.sort(key=lambda _: _[1])
+        # https://stackoverflow.com/a/18411610/5252227
+        restaurants_with_distance.sort(key=lambda x: (x[1] is None, x[1]))
 
     return restaurants_with_distance

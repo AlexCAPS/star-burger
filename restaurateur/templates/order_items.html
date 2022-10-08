@@ -42,7 +42,11 @@
           Может приготовить:
           <ul>
             {% for restaurant in item.restaurants %}
-              <li>{{ restaurant.0 }} - {{ restaurant.1|floatformat:1 }}&nbsp;км.</li>
+              {% if restaurant.1 %}
+                <li>{{ restaurant.0 }} - {{ restaurant.1|floatformat:1 }}&nbsp;км.</li>
+              {% else %}
+                <li>{{ restaurant.0 }} - ???</li>
+              {% endif %}
             {% empty %}
               ---
             {% endfor %}

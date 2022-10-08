@@ -105,15 +105,13 @@ def view_orders(request):
     for restaurant in appropriated_restaurants:
         mapped_restaurants[restaurant.order_pk].append(restaurant)
 
-    order_items = []
-
-    for order in orders:
-        order_items.append(
-            {
-                'order': order,
-                'restaurants': get_distances(order, mapped_restaurants.get(order.pk, []), sort=True)
-            }
-        )
+    order_items = [
+        {
+            'order': order,
+            'restaurants': get_distances(order, mapped_restaurants.get(order.pk, []), sort=True)
+        }
+        for order in orders
+    ]
 
     context = {
         'order_items': order_items,
