@@ -2,9 +2,11 @@ from django.conf import settings
 import requests
 from geopy import distance
 
+from cache_address_app.decorators import use_db_cache
 from foodcartapp.models import Order
 
 
+@use_db_cache
 def fetch_coordinates(apikey, address):
     base_url = 'https://geocode-maps.yandex.ru/1.x'
     response = requests.get(base_url, params={

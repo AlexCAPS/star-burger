@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'foodcartapp.apps.FoodcartappConfig',
     'restaurateur.apps.RestaurateurConfig',
+    'cache_address_app.apps.CacheAddressAppConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
